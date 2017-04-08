@@ -1,28 +1,67 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 	"time"
 )
 
 func main() {
-	choice := user_choice()
-	fmt.Println("You chose: " + choice)
-	showTimer(1)
+	minutes := userChoice()
+	if minutes != -1 {
+		showTimer(minutes)
+	}
 }
 
-func user_choice() string {
+func userChoice() int {
 	a := `Select option:
 1. 25 minutes break
 2. 5 minutes break
 3. 15 minutes break
-4. m<number> for manual number of minutes
-5. q to quit`
-	fmt.Println(a)
+m<number> for manual number of minutes
+q to quit
+
+Your choice? `
+	fmt.Printf(a)
 
 	var choice string
 	fmt.Scanf("%s", &choice)
-	return choice
+	minutes, err := parseInput(choice)
+
+	for err != nil {
+		fmt.Printf("Your choice? ")
+		fmt.Scanf("%s", &choice)
+		minutes, err = parseInput(choice)
+	}
+
+	return minutes
+}
+
+func parseInput(choice string) (int, error) {
+	var validChoice = regexp.MustCompile(`^(1|2|3)$`)
+	var validManualChoice = regexp.MustCompile(`m([0-9]+)`)
+
+	var minutes string
+	if validChoice.MatchString(choice) {
+		switch choice {
+		case "1":
+			minutes = "25"
+		case "2":
+			minutes = "5"
+		case "3":
+			minutes = "15"
+		}
+	} else if validManualChoice.MatchString(choice) {
+		minutes = validManualChoice.FindStringSubmatch(choice)[1]
+	} else if choice == "q" {
+		minutes = "-1"
+	} else {
+		return 0, errors.New("invalid argument")
+	}
+	i, _ := strconv.Atoi(minutes)
+	return i, nil
 }
 
 func showTimer(minutes int) {
