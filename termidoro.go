@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"time"
@@ -12,6 +14,7 @@ func main() {
 	minutes := userChoice()
 	if minutes != -1 {
 		showTimer(minutes)
+		notify(minutes)
 	}
 }
 
@@ -79,7 +82,19 @@ func showTimer(minutes int) {
 		if elapsedSeconds == totalSeconds {
 			break
 		}
-
 		elapsedSeconds++
+	}
+	fmt.Println()
+}
+
+func notify(minutes int) {
+	// OSX
+	text := fmt.Sprintf("Completed timer for %d minute(s)", minutes)
+	title := "Termidoro"
+	cmd := "display notification \"" + text + "\" with title \"" + title + "\""
+	fmt.Println("osascript " + " -e " + cmd)
+	err := exec.Command("osascript", "-e", cmd).Run()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
